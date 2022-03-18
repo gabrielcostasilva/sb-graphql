@@ -1,56 +1,69 @@
 # GraphQL Example
-This project is based on Josh Long's excellent intro to [Spring tips: Spring GraphQL](https://www.youtube.com/watch?v=kVSYVhmvNCI) and a previous [example](https://github.com/gabrielcostasilva/sb-controllers/tree/main/graphql).
+This project is based on Josh Long's excellent intro to [Spring tips: Spring GraphQL](https://www.youtube.com/watch?v=kVSYVhmvNCI) and a previous [example](../mutation/).
 
-This project extends the previous one by adding a mutation. A mutation is the terminology in GraphQL for adding changes to data.
+This project extends the previous one by implementing subscription. A subscription is the terminology in GraphQL for receiving data streams.
 
 ## Project Overview
-Starting from the [previous project](https://github.com/gabrielcostasilva/sb-controllers/tree/main/graphql), we just need to add the `mutation` operation in our schema, and add the corresponding method in our controller. The code snippet below shows the code added into the existing schema.
+As in the previous project, the change starts from the schema, adding an entry for subscription.
 
 ```graphql
+(...)
 
-type Mutation {
-    addCustomer(name: String): Customer
+type Subscription {
+    customerEvents (customerId: ID): CustomerEvent
 }
 
+type CustomerEvent {
+    customer: Customer
+    event: CustomerEventType
+}
+
+enum CustomerEventType {
+    UPDATED
+    DELETED
+}
+
+(...)
 ```
 
-A `Mutation` is a type, like `Query`. In our example, this type has only one operation: `addCustomer(String)`. This operation returns a `Customer` type. The type `Customer` is already defined in our schema.
+Notice the _subscription_ introduces a new type, `CustomerEvent`, which is also described in the schema. In turn, `CustomerEvent` also introduces a new type, `CustomerEventType`, as an `enum`.
 
-The next step consists of adding the corresponding Java method into our controller, as the snippet below shows.
+To match the schema, we created a new method in our controller (`GraphQLController.customerEvents()`), and new also new classes to represent the necessary types (`com.example.graphql.CustomerEvent` and `com.example.graphql.CustomerEventType`).
 
+As before, the method is annotated to represent the GraphQL subscription (`org.springframework.graphql.data.method.annotation.SubscriptionMapping`), as the code snippet below shows.
 
 ```java
 // (...)
-private List<Customer> db = 
-    new ArrayList<>(){{
-        add(new Customer(1, "John Doe"));
-        add(new Customer(2, "Anna Doe"));
-    }};
+@SubscriptionMapping
+Flux<CustomerEvent> customerEvents(@Argument Integer customerId) {
+
+    Optional<Customer> customer = db.stream()
+                        .filter(aCustomer -> aCustomer.id() == customerId)
+                        .findAny();
+
+    Mono<Customer> monoCustomer = Mono.just(customer.get());
+
+    return monoCustomer
+                .flatMapMany(aCustomer -> {
+                    var stream = Stream.generate(() -> new CustomerEvent(aCustomer, Math.random() > .5 ? CustomerEventType.DELETED: CustomerEventType.UPDATED));
+
+                    return Flux.fromStream(stream);
+                })
+                .delayElements(Duration.ofSeconds(1))
+                .take(10);
+
+}
 
 // (...)
-@MutationMapping
-public Mono<Customer> addCustomer (@Argument String name) {
-    var customer = new Customer(this.db.size() + 1, name);
-    this.db.add(customer);
-
-    return Mono.just(customer);
-}
 ```
+The method body just simulates a continuous stream of `CustomerEvent`s every second, 10 times. 
 
-Notice the first change is necessary because previous code used an immutable list. Next, we just add a method following the conventions set for the schema. In this case, the method receives an argument (`String name`) and returns a `Customer`. As we are using [WebFlux](https://docs.spring.io/spring-framework/docs/current/reference/html/web-reactive.html), the result must be wrapped in a `Mono` container.
+A subscription does not have to be served over HTTP. Therefore, in this example, we use WebSocket. To enable WebSocket, we need to add `spring.graphql.websocket.path=/graphql` to the `application.properties` configuration file. 
 
-As for `Query`, Spring also provides a shortcut for annotating a mutation: `@MutationMapping`. The method parameter is also annotated, with `@org.springframework.graphql.data.method.annotation.Argument`.
+That would be all we need. However, there is no simple way to access WebSocket connections. Therefore, a [webpage](./src/main/resources/static/index.html) was developed.
+
+The webpage uses [graphql-ws](https://github.com/enisdenjo/graphql-ws), a JS library that enables GraphQL over WebSocket, to subscribe and receive data.
+
 
 ### Run the project
-In order to run the project with annecdotal data, one can use the GraphiQL. Notice the "i" in the name. This is a query editor that one can use from the browser. 
-
-Open your browser on `http://localhost:8080/graphiql?path=/graphql` to run the following mutation as an example.
-
-```
-mutation {
-  addCustomer(name: "Bibiana") {
-    id, name
-  }
-}
-
-```
+The webpage code access the stream as soon as the page is open. However, the results are sent to JS console. Therefore, one need to open devtools to see the result. 
