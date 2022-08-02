@@ -9,3 +9,5 @@ Each folder groups a single example as follows:
 - [_mutation_](./mutation/) shows how to add data to a dataset.
 
 - [_subscription_](./subscription/) extends the _mutation_ code example to use subscription over WebSocket.
+
+- [_crud_](./crud/) implements a CRUD example with integration tests.
