@@ -127,10 +127,65 @@ String document = """
 }
 ```
 
+## Security
+Dan Vega [published another video](https://www.youtube.com/watch?v=PkhsQPPFgOo) extending the previous example by adding security into the project.
+
+These are the main changes:
+
+1. Added dependencies. We need the Spring Security (obviously), but not so obvious, we also need the Web dependency. That is because the original project used WebFlux as base for the project. The WebFlux dependency lacks the `Filter` interface, necessary for implementing the `SecurityFilterChain`. Checkout the POM.xml for details.
+
+```xml
+...
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+...
+```
+
+2. Created [`SecurityConfig`](../crud/src/main/java/com/example/crud/SecurityConfig.java) class. This class is responsible for: (i) security settings; (ii) authentication mechanism; and (iii) authorisation rules. The configuration used here does not differ from traditional Spring Security used in Web projects.
+
+3. Added method security into [`CoffeController`](../crud/src/main/java/com/example/crud/CoffeeController.java) class. 
+
+Firstly, we secured the `findAll()` method with role based security. Therefore, only users with the `USER` role can call the `findAll()` method.
+
+```java
+...
+
+@Secured("ROLE_USER")
+@QueryMapping
+public List<Coffee> findAll() {
+    return service.findAll();
+}
+
+...
+
+```
+
+Secondly, we used a newer resource, the `PreAuthorize` annotation to add expressions-based rules.
+
+```java
+...
+
+@PreAuthorize("hasRole('ADMIN')")
+@MutationMapping
+public Coffee create(@Argument String name, @Argument Size size) {
+    return service.create(name, size);
+}
+
+...
+```
+
 ## Run the project
 In order to run the project with annecdotal data, one can use the GraphiQL. Notice the "i" in the name. This is a query editor that one can use from the browser. 
 
 Open your browser on `http://localhost:8080/graphiql?path=/graphql` to run the following mutation as an example.
+
+> **Notice** that we just added security into this project. Therefore, you gonna be asked for credentials. You can use _admin_ as username, and _test123_ as password.
 
 ```
 query {

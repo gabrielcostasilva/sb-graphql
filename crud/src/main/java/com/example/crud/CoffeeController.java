@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -17,16 +19,18 @@ public class CoffeeController {
         this.service = service;
     }
 
+    @Secured("ROLE_USER")
     @QueryMapping
     public List<Coffee> findAll() {
         return service.findAll();
     }
-
+    
     @QueryMapping
     public Optional<Coffee> findOne(@Argument Integer id) {
         return service.findOne(id);
     }
-
+    
+    @PreAuthorize("hasRole('ADMIN')")
     @MutationMapping
     public Coffee create(@Argument String name, @Argument Size size) {
         return service.create(name, size);

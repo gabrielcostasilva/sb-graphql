@@ -10,4 +10,4 @@ Each folder groups a single example as follows:
 
 - [_subscription_](./subscription/) extends the _mutation_ code example to use subscription over WebSocket.
 
-- [_crud_](./crud/) implements a CRUD example with integration tests.
+- [_crud_](./crud/) implements a CRUD example with security and integration tests.
