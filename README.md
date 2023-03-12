@@ -11,3 +11,5 @@ Each folder groups a single example as follows:
 - [_subscription_](./subscription/) extends the _mutation_ code example to use subscription over WebSocket.
 
 - [_crud_](./crud/) implements a CRUD example with security and integration tests.
+
+- [_scalars_](./scalars/) exemplifies the use of custom scalars with GraphQL and Java.
