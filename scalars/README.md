@@ -1,5 +1,3 @@
-based on
-
 # GRAPHQL EXAMPLES - SCALARS
 This repo groups few examples of GraphQL operations implemented with Spring Boot.
 
