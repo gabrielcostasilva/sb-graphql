@@ -41,7 +41,7 @@ Notice the first change is necessary because previous code used an immutable lis
 
 As for `Query`, Spring also provides a shortcut for annotating a mutation: `@MutationMapping`. The method parameter is also annotated, with `@org.springframework.graphql.data.method.annotation.Argument`.
 
-### Run the project
+## Run the project
 In order to run the project with annecdotal data, one can use the GraphiQL. Notice the "i" in the name. This is a query editor that one can use from the browser. 
 
 Open your browser on `http://localhost:8080/graphiql?path=/graphql` to run the following mutation as an example.
@@ -54,3 +54,6 @@ mutation {
 }
 
 ```
+
+## Additional References
+- [Learn how to use GraphQL Mutations in Spring Boot](https://www.youtube.com/watch?v=u3FFRq3-0CM) is a step-by-step guide to create mutations. It complements Josh Long's video.
