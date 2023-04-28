@@ -13,3 +13,5 @@ Each folder groups a single example as follows:
 - [_crud_](./crud/) implements a CRUD example with security and integration tests.
 
 - [_scalars_](./scalars/) exemplifies the use of custom scalars with GraphQL and Java.
+
+- [_graphql-client_](./graphql-client/) accesses an existing GraphQL public API and saves its data to a local database.
